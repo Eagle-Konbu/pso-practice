@@ -3,7 +3,7 @@ use pso::pso::Pso;
 fn main() {
     println!("Hello, world!");
     let mut rng = rand::thread_rng();
-    let mut pso = Pso::new(0.5, 0.5, 0.5, 0.0, 10.0, 5, f);
+    let mut pso = Pso::new(0.5, 0.5, 0.5, 0.0, 10.0, 5, f, &mut rng);
     pso.run(&mut rng, 100);
 
     println!("global best: {:?}\nbest score: {:?}", pso.global_best, f(&pso.global_best));

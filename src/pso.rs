@@ -19,8 +19,8 @@ impl Pso {
         max: f64,
         n: usize,
         eval_func: fn(&Vec<f64>) -> f64,
+        rng: &mut rand::rngs::ThreadRng,
     ) -> Pso {
-        let mut rng = rand::thread_rng();
         let mut particles = Vec::new();
         for _ in 0..n {
             let mut position = Vec::new();
