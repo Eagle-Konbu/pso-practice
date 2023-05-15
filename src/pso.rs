@@ -7,7 +7,7 @@ pub struct Pso {
     pub w: f64,
     pub c1: f64,
     pub c2: f64,
-    pub eval_func: fn(&Vec<f64>) -> f64,
+    pub eval_func: fn(&[f64]) -> f64,
 }
 
 impl Pso {
@@ -20,7 +20,7 @@ impl Pso {
         max: f64,
         n: usize,
         dim: usize,
-        eval_func: fn(&Vec<f64>) -> f64,
+        eval_func: fn(&[f64]) -> f64,
         rng: &mut rand::rngs::ThreadRng,
     ) -> Pso {
         let mut particles = Vec::new();

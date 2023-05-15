@@ -13,7 +13,7 @@ fn main() {
     );
 }
 
-fn f(x: &Vec<f64>) -> f64 {
+fn f(x: &[f64]) -> f64 {
     let mut sum = 0.0;
     for i in 0..x.len() {
         sum += x[i].powi(2);
