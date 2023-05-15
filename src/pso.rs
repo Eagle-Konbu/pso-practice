@@ -1,5 +1,5 @@
-use rand::Rng;
 use crate::particle::Particle;
+use rand::Rng;
 
 pub struct Pso {
     pub particles: Vec<Particle>,
@@ -11,6 +11,7 @@ pub struct Pso {
 }
 
 impl Pso {
+    #[allow(clippy::too_many_arguments, clippy::same_item_push)]
     pub fn new(
         w: f64,
         c1: f64,
@@ -18,17 +19,18 @@ impl Pso {
         min: f64,
         max: f64,
         n: usize,
+        dim: usize,
         eval_func: fn(&Vec<f64>) -> f64,
         rng: &mut rand::rngs::ThreadRng,
     ) -> Pso {
         let mut particles = Vec::new();
         for _ in 0..n {
             let mut position = Vec::new();
-            for _ in 0..n {
+            for _ in 0..dim {
                 position.push(rng.gen_range(min..=max));
             }
             let mut velocity = Vec::new();
-            for _ in 0..n {
+            for _ in 0..dim {
                 velocity.push(0.0);
             }
             let personal_best = position.clone();
@@ -95,7 +97,11 @@ impl Pso {
     pub fn run(&mut self, rng: &mut rand::rngs::ThreadRng, max_iter: usize) {
         for _ in 0..max_iter {
             self.update(rng);
-            println!("global best: {:?}\nbest score: {:?}", self.global_best, (self.eval_func)(&self.global_best));
+            println!(
+                "global best: {:?}\nbest score: {:?}",
+                self.global_best,
+                (self.eval_func)(&self.global_best)
+            );
         }
     }
 }
