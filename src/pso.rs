@@ -76,6 +76,8 @@ impl Pso {
         for i in 0..self.particles.len() {
             let mut new_position = Vec::new();
             let mut new_velocity = Vec::new();
+
+            let leader_idx = self.local_best_idx(i);
             for j in 0..self.particles[i].position.len() {
                 let r1 = rng.gen_range(0.0..=1.0);
                 let r2 = rng.gen_range(0.0..=1.0);
@@ -83,7 +85,7 @@ impl Pso {
                     + self.c1
                         * r1
                         * (self.particles[i].personal_best[j] - self.particles[i].position[j])
-                    + self.c2 * r2 * (self.global_best[j] - self.particles[i].position[j]);
+                    + self.c2 * r2 * (self.particles[leader_idx].position[j] - self.particles[i].position[j]);
                 new_velocity.push(new_velocity_j);
                 let new_position_j = self.particles[i].position[j] + new_velocity_j;
                 new_position.push(new_position_j);
