@@ -1,5 +1,8 @@
 use crate::particle::Particle;
 use rand::Rng;
+use std::collections::VecDeque;
+
+type Graph = Vec<Vec<usize>>;
 
 pub struct Pso {
     pub particles: Vec<Particle>,
@@ -8,6 +11,8 @@ pub struct Pso {
     pub c1: f64,
     pub c2: f64,
     pub eval_func: fn(&[f64]) -> f64,
+    pub neighborhood_graph: Graph,
+    pub neighborhood_depth: usize,
 }
 
 impl Pso {
@@ -21,6 +26,8 @@ impl Pso {
         n: usize,
         dim: usize,
         eval_func: fn(&[f64]) -> f64,
+        neighborhood_graph: &Graph,
+        neighborhood_depth: usize,
         rng: &mut rand::rngs::ThreadRng,
     ) -> Pso {
         let mut particles = Vec::new();
@@ -51,12 +58,16 @@ impl Pso {
             .unwrap()
             .position
             .clone();
+
+        let neighbor = neighborhood_graph.clone();
         Pso {
             particles,
             global_best,
             w,
             c1,
             c2,
+            neighborhood_graph: neighbor,
+            neighborhood_depth,
             eval_func,
         }
     }
@@ -91,6 +102,38 @@ impl Pso {
                 self.global_best = self.particles[i].personal_best.clone();
             }
         }
+    }
+
+    fn local_best_idx(&self, particle_idx: usize) -> usize {
+        let mut particles = vec![(self.particles[particle_idx].clone(), particle_idx)];
+
+        // bfs
+        let mut deq = VecDeque::new();
+        let mut seen = vec![false; self.particles.len()];
+        deq.push_back((particle_idx, 0));
+        while !deq.is_empty() {
+            let (v, d) = deq.pop_front().unwrap();
+            seen[v] = true;
+            particles.push((self.particles[v].clone(), v));
+            if d == self.neighborhood_depth {
+                continue;
+            }
+            for &vv in self.neighborhood_graph[v].iter() {
+                if !seen[vv] {
+                    deq.push_back((vv, d + 1));
+                }
+            }
+        }
+
+        particles
+            .iter()
+            .min_by(|a, b| {
+                (self.eval_func)(&a.0.position)
+                    .partial_cmp(&(self.eval_func)(&b.0.position))
+                    .unwrap()
+            })
+            .unwrap()
+            .1
     }
 
     pub fn run(&mut self, rng: &mut rand::rngs::ThreadRng, max_iter: usize) {
