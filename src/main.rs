@@ -1,8 +1,6 @@
 use pso::pso::Pso;
 
 fn main() {
-    println!("Hello, world!");
-
     let n = 100;
     let complete_graph = {
         let mut graph = Vec::new();
@@ -24,14 +22,13 @@ fn main() {
         0.5,
         0.0,
         10.0,
-        100,
         5,
         f,
         &complete_graph,
         1,
         &mut rng,
     );
-    pso.run(&mut rng, 100);
+    pso.run(&mut rng, 100, false);
 
     println!(
         "global best: {:?}\nbest score: {:?}",

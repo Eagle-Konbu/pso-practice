@@ -23,13 +23,13 @@ impl Pso {
         c2: f64,
         min: f64,
         max: f64,
-        n: usize,
         dim: usize,
         eval_func: fn(&[f64]) -> f64,
         neighborhood_graph: &Graph,
         neighborhood_depth: usize,
         rng: &mut rand::rngs::ThreadRng,
     ) -> Pso {
+        let n = neighborhood_graph.len();
         let mut particles = Vec::new();
         for _ in 0..n {
             let mut position = Vec::new();
@@ -85,7 +85,9 @@ impl Pso {
                     + self.c1
                         * r1
                         * (self.particles[i].personal_best[j] - self.particles[i].position[j])
-                    + self.c2 * r2 * (self.particles[leader_idx].position[j] - self.particles[i].position[j]);
+                    + self.c2
+                        * r2
+                        * (self.particles[leader_idx].position[j] - self.particles[i].position[j]);
                 new_velocity.push(new_velocity_j);
                 let new_position_j = self.particles[i].position[j] + new_velocity_j;
                 new_position.push(new_position_j);
@@ -138,14 +140,16 @@ impl Pso {
             .1
     }
 
-    pub fn run(&mut self, rng: &mut rand::rngs::ThreadRng, max_iter: usize) {
+    pub fn run(&mut self, rng: &mut rand::rngs::ThreadRng, max_iter: usize, print_status: bool) {
         for _ in 0..max_iter {
             self.update(rng);
-            println!(
-                "global best: {:?}\nbest score: {:?}",
-                self.global_best,
-                (self.eval_func)(&self.global_best)
-            );
+            if print_status {
+                println!(
+                    "global best: {:?}\nbest score: {:?}",
+                    self.global_best,
+                    (self.eval_func)(&self.global_best)
+                );
+            }
         }
     }
 }
