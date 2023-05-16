@@ -62,7 +62,6 @@ impl Pso {
     }
 
     fn update(&mut self, rng: &mut rand::rngs::ThreadRng) {
-        // let mut new_particles = Vec::new();
         for i in 0..self.particles.len() {
             let mut new_position = Vec::new();
             let mut new_velocity = Vec::new();
