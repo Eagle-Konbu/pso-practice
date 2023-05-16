@@ -16,18 +16,7 @@ fn main() {
         graph
     };
     let mut rng = rand::thread_rng();
-    let mut pso = Pso::new(
-        0.5,
-        0.5,
-        0.5,
-        0.0,
-        10.0,
-        5,
-        f,
-        &complete_graph,
-        1,
-        &mut rng,
-    );
+    let mut pso = Pso::new(0.5, 0.5, 0.5, 0.0, 10.0, 5, f, &complete_graph, 1, &mut rng);
     pso.run(&mut rng, 100, false);
 
     println!(
