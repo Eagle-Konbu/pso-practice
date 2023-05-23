@@ -1,5 +1,8 @@
 use crate::particle::Particle;
 use rand::Rng;
+use std::collections::VecDeque;
+
+type Graph = Vec<Vec<usize>>;
 
 pub struct Pso {
     pub particles: Vec<Particle>,
@@ -8,6 +11,8 @@ pub struct Pso {
     pub c1: f64,
     pub c2: f64,
     pub eval_func: fn(&[f64]) -> f64,
+    pub neighborhood_graph: Graph,
+    pub neighborhood_depth: usize,
 }
 
 impl Pso {
@@ -18,11 +23,13 @@ impl Pso {
         c2: f64,
         min: f64,
         max: f64,
-        n: usize,
         dim: usize,
         eval_func: fn(&[f64]) -> f64,
+        neighborhood_graph: &Graph,
+        neighborhood_depth: usize,
         rng: &mut rand::rngs::ThreadRng,
     ) -> Pso {
+        let n = neighborhood_graph.len();
         let mut particles = Vec::new();
         for _ in 0..n {
             let mut position = Vec::new();
@@ -51,12 +58,16 @@ impl Pso {
             .unwrap()
             .position
             .clone();
+
+        let neighbor = neighborhood_graph.clone();
         Pso {
             particles,
             global_best,
             w,
             c1,
             c2,
+            neighborhood_graph: neighbor,
+            neighborhood_depth,
             eval_func,
         }
     }
@@ -65,6 +76,8 @@ impl Pso {
         for i in 0..self.particles.len() {
             let mut new_position = Vec::new();
             let mut new_velocity = Vec::new();
+
+            let leader_idx = self.local_best_idx(i);
             for j in 0..self.particles[i].position.len() {
                 let r1 = rng.gen_range(0.0..=1.0);
                 let r2 = rng.gen_range(0.0..=1.0);
@@ -72,7 +85,9 @@ impl Pso {
                     + self.c1
                         * r1
                         * (self.particles[i].personal_best[j] - self.particles[i].position[j])
-                    + self.c2 * r2 * (self.global_best[j] - self.particles[i].position[j]);
+                    + self.c2
+                        * r2
+                        * (self.particles[leader_idx].position[j] - self.particles[i].position[j]);
                 new_velocity.push(new_velocity_j);
                 let new_position_j = self.particles[i].position[j] + new_velocity_j;
                 new_position.push(new_position_j);
@@ -93,14 +108,48 @@ impl Pso {
         }
     }
 
-    pub fn run(&mut self, rng: &mut rand::rngs::ThreadRng, max_iter: usize) {
+    fn local_best_idx(&self, particle_idx: usize) -> usize {
+        let mut particles = vec![(self.particles[particle_idx].clone(), particle_idx)];
+
+        // bfs
+        let mut deq = VecDeque::new();
+        let mut seen = vec![false; self.particles.len()];
+        deq.push_back((particle_idx, 0));
+        while !deq.is_empty() {
+            let (v, d) = deq.pop_front().unwrap();
+            seen[v] = true;
+            particles.push((self.particles[v].clone(), v));
+            if d == self.neighborhood_depth {
+                continue;
+            }
+            for &vv in self.neighborhood_graph[v].iter() {
+                if !seen[vv] {
+                    deq.push_back((vv, d + 1));
+                }
+            }
+        }
+
+        particles
+            .iter()
+            .min_by(|a, b| {
+                (self.eval_func)(&a.0.position)
+                    .partial_cmp(&(self.eval_func)(&b.0.position))
+                    .unwrap()
+            })
+            .unwrap()
+            .1
+    }
+
+    pub fn run(&mut self, rng: &mut rand::rngs::ThreadRng, max_iter: usize, print_status: bool) {
         for _ in 0..max_iter {
             self.update(rng);
-            println!(
-                "global best: {:?}\nbest score: {:?}",
-                self.global_best,
-                (self.eval_func)(&self.global_best)
-            );
+            if print_status {
+                println!(
+                    "global best: {:?}\nbest score: {:?}",
+                    self.global_best,
+                    (self.eval_func)(&self.global_best)
+                );
+            }
         }
     }
 }
