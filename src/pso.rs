@@ -30,6 +30,9 @@ impl Pso {
         rng: &mut rand::rngs::ThreadRng,
     ) -> Pso {
         let n = neighborhood_graph.len();
+        if n == 0 {
+            panic!("neighborhood_graph must not be empty");
+        }
         let mut particles = Vec::new();
         for _ in 0..n {
             let mut position = Vec::new();
@@ -151,5 +154,148 @@ impl Pso {
                 );
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // テスト用の評価関数
+    fn eval_func(position: &[f64]) -> f64 {
+        position.iter().sum()
+    }
+
+    //テスト用のグラフ
+    fn test_graph() -> Graph {
+        vec![
+            vec![1, 2],
+            vec![0, 2],
+            vec![0, 1, 3],
+            vec![2, 4],
+            vec![3, 5],
+            vec![4, 6],
+            vec![5, 7],
+            vec![6, 8],
+            vec![7, 9],
+            vec![8],
+        ]
+    }
+
+    #[test]
+    fn test_pso_new() {
+        let w = 0.5;
+        let c1 = 1.0;
+        let c2 = 2.0;
+        let min = 0.0;
+        let max = 1.0;
+        let dim = 2;
+        let neighborhood_graph = test_graph();
+        let neighborhood_depth = 1;
+        let mut rng = rand::thread_rng();
+
+        let pso = Pso::new(
+            w,
+            c1,
+            c2,
+            min,
+            max,
+            dim,
+            eval_func,
+            &neighborhood_graph,
+            neighborhood_depth,
+            &mut rng,
+        );
+
+        // Pso構造体が正しく初期化されているかを確認
+        assert_eq!(pso.particles.len(), neighborhood_graph.len());
+        assert_eq!(pso.global_best.len(), dim);
+    }
+
+    #[test]
+    fn test_pso_update() {
+        let w = 0.5;
+        let c1 = 1.0;
+        let c2 = 2.0;
+        let min = 0.0;
+        let max = 1.0;
+        let dim = 2;
+        let neighborhood_graph = test_graph();
+        let neighborhood_depth = 1;
+        let mut rng = rand::thread_rng();
+
+        let mut pso = Pso::new(
+            w,
+            c1,
+            c2,
+            min,
+            max,
+            dim,
+            eval_func,
+            &neighborhood_graph,
+            neighborhood_depth,
+            &mut rng,
+        );
+
+        // updateメソッドを実行し、エラーが発生しないことを確認
+        pso.update(&mut rng);
+    }
+
+    #[test]
+    fn test_pso_local_best_idx() {
+        let w = 0.5;
+        let c1 = 1.0;
+        let c2 = 2.0;
+        let min = 0.0;
+        let max = 1.0;
+        let dim = 2;
+        let neighborhood_graph = test_graph();
+        let neighborhood_depth = 1;
+        let mut rng = rand::thread_rng();
+
+        let pso = Pso::new(
+            w,
+            c1,
+            c2,
+            min,
+            max,
+            dim,
+            eval_func,
+            &neighborhood_graph,
+            neighborhood_depth,
+            &mut rng,
+        );
+
+        // local_best_idxメソッドを実行し、エラーが発生しないことを確認
+        let _ = pso.local_best_idx(0);
+    }
+
+    #[test]
+    fn test_pso_run() {
+        let w = 0.5;
+        let c1 = 1.0;
+        let c2 = 2.0;
+        let min = 0.0;
+        let max = 1.0;
+        let dim = 2;
+        let neighborhood_graph = test_graph();
+        let neighborhood_depth = 1;
+        let mut rng = rand::thread_rng();
+
+        let mut pso = Pso::new(
+            w,
+            c1,
+            c2,
+            min,
+            max,
+            dim,
+            eval_func,
+            &neighborhood_graph,
+            neighborhood_depth,
+            &mut rng,
+        );
+
+        // runメソッドを実行し、エラーが発生しないことを確認
+        pso.run(&mut rng, 10, false);
     }
 }
