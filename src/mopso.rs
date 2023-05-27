@@ -81,30 +81,10 @@ impl Mopso {
             })
             .collect::<Vec<Vec<f64>>>();
 
-        let mut nondominated_idxs = vec![];
-
-        for i in 0..results.len() {
-            let mut dominated = false;
-            for j in 0..results.len() {
-                if i == j {
-                    continue;
-                }
-                if dominates(&results[j], &results[i]) {
-                    dominated = true;
-                    break;
-                }
-            }
-            if !dominated {
-                nondominated_idxs.push(i);
-            }
-        }
-
-        let nondominated_particles = nondominated_idxs
-            .iter()
-            .map(|&i| self.particles[i].clone())
-            .collect::<Vec<Particle>>();
-
-        nondominated_particles
+        (0..results.len())
+            .filter(|&i| !(0..results.len()).any(|j| i != j && dominates(&results[j], &results[i])))
+            .map(|i| self.particles[i].clone())
+            .collect::<Vec<Particle>>()
     }
 }
 
