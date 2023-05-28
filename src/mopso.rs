@@ -9,8 +9,6 @@ pub struct Mopso {
     pub c1: f64,
     pub c2: f64,
     pub eval_funcs: Vec<fn(&[f64]) -> f64>,
-    pub neighborhood_graph: Graph,
-    pub neighborhood_depth: usize,
     pub external_archive: Vec<Particle>,
 }
 
@@ -22,16 +20,11 @@ impl Mopso {
         c2: f64,
         min: f64,
         max: f64,
+        n: usize,
         dim: usize,
         eval_funcs: Vec<fn(&[f64]) -> f64>,
-        neighborhood_graph: &Graph,
-        neighborhood_depth: usize,
         rng: &mut rand::rngs::ThreadRng,
     ) -> Mopso {
-        let n = neighborhood_graph.len();
-        if n == 0 {
-            panic!("neighborhood_graph must not be empty");
-        }
         let particles = {
             let mut x = vec![];
             for _ in 0..n {
@@ -53,20 +46,21 @@ impl Mopso {
             x
         };
 
-        let neighbor = neighborhood_graph.clone();
         let mut mopso = Mopso {
             particles,
             w,
             c1,
             c2,
-            neighborhood_graph: neighbor,
-            neighborhood_depth,
             eval_funcs,
             external_archive: vec![],
         };
 
         mopso.external_archive = mopso.nondominated_particles();
         mopso
+    }
+
+    fn update(&mut self, rng: &mut rand::rngs::ThreadRng) {
+        for i in 0..self.particles.len() {}
     }
 
     fn nondominated_particles(&self) -> Vec<Particle> {
@@ -85,6 +79,20 @@ impl Mopso {
             .filter(|&i| !(0..results.len()).any(|j| i != j && dominates(&results[j], &results[i])))
             .map(|i| self.particles[i].clone())
             .collect::<Vec<Particle>>()
+    }
+
+    fn leader_idx(&self, particle_idx: usize, k: usize) -> usize {
+        let other_particles = self
+            .particles
+            .iter()
+            .enumerate()
+            .filter(|&(i, _)| i != particle_idx)
+            .collect::<Vec<(usize, &Particle)>>();
+        0
+    }
+
+    fn quality(&self) -> f64 {
+        0.0
     }
 }
 
